@@ -1,12 +1,15 @@
 /**
- * Author:    Valentin Deschamps
- * Created:   20/10/2022
- * Modified:  20/10/2022
+ * Author:              Valentin Deschamps
+ * Modification by :    Valentin Deschamps
+ * Created:             20/10/2022
+ * Modified:            20/10/2022
  * 
  * © Copyright by SoundX
  **/
 
 #pragma once
+
+#include "portaudio.h"
 
 /**
  * StreamHandler Class (temporary name)
@@ -47,12 +50,50 @@
 #define PRINTF_S_FORMAT "%d"
 #endif
 
+
+
 class StreamHandler
 {
     public:
         StreamHandler();
         ~StreamHandler();
+        // void init(); // Will probably do that in constructor
+        void initInput(unsigned int deviceId); // Setup Input Params
+        void initOutput(unsigned int deviceId); // Setup Output Params
+        void openStream(PaStreamCallback callback);
+        void startStream();
+        void stopStream();
+        void closeStream();
+        void handleError();
+        void displayPaError();
+
+    /* Maybe for later use */
+        // class InitStreamException : public std::exception
+		// {
+		// 	virtual const char* what() const throw();
+		// };
+
+        // class OpenStreamException : public std::exception
+		// {
+		// 	virtual const char* what() const throw();
+		// };
+
+        // class StartStreamException : public std::exception
+		// {
+		// 	virtual const char* what() const throw();
+		// };
+
+        // class StopStreamException : public std::exception
+		// {
+		// 	virtual const char* what() const throw();
+		// };
 
     private:
+        PaStreamParameters inputParameters, outputParameters;
+        PaStream *stream;
+        PaError err;
+        const PaDeviceInfo* inputInfo;
+        const PaDeviceInfo* outputInfo;
+        // unsigned int numChannels;
         
 };

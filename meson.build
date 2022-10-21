@@ -21,7 +21,8 @@ defines = [
 #]	
 
 srcs =  [
-    'src/main.cpp'
+    'src/main.cpp',
+    'src/StreamHandler.cpp'
 ]
 
 executable('POC_RtAudio', 
