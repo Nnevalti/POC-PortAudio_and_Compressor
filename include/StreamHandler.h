@@ -10,6 +10,7 @@
 #pragma once
 
 #include "portaudio.h"
+#include "WavCreator.h"
 
 /**
  * StreamHandler Class (temporary name)
@@ -50,7 +51,7 @@
 #define PRINTF_S_FORMAT "%d"
 #endif
 
-
+class WavCreator;
 
 class StreamHandler
 {
@@ -66,27 +67,7 @@ class StreamHandler
         void closeStream();
         void handleError();
         void displayPaError();
-
-    /* Maybe for later use */
-        // class InitStreamException : public std::exception
-		// {
-		// 	virtual const char* what() const throw();
-		// };
-
-        // class OpenStreamException : public std::exception
-		// {
-		// 	virtual const char* what() const throw();
-		// };
-
-        // class StartStreamException : public std::exception
-		// {
-		// 	virtual const char* what() const throw();
-		// };
-
-        // class StopStreamException : public std::exception
-		// {
-		// 	virtual const char* what() const throw();
-		// };
+        WavCreator creator;
 
     private:
         PaStreamParameters inputParameters, outputParameters;
@@ -94,6 +75,7 @@ class StreamHandler
         PaError err;
         const PaDeviceInfo* inputInfo;
         const PaDeviceInfo* outputInfo;
+
         // unsigned int numChannels;
         
 };
