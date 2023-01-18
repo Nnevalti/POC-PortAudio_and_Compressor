@@ -1,8 +1,8 @@
-#include "WavCreator.h"
+#include "WavRecorder.h"
 
-WavCreator::WavCreator() {}
+WavRecorder::WavRecorder() {}
 
-void WavCreator::startRecording(const char* fileName) {
+void WavRecorder::startRecording(const char* fileName) {
     file.open(fileName, std::ios::binary);
 
     if (!file.is_open()) {
@@ -13,7 +13,7 @@ void WavCreator::startRecording(const char* fileName) {
     isRecording = true;
 }
 
-void WavCreator::AppendData(const float* data, unsigned long nbFrames) {
+void WavRecorder::AppendData(const float* data, unsigned long nbFrames) {
     for (int i = 0; i < nbFrames; i++)
     {
         for (int c = 0; c < header.NumOfChan; c++) {
@@ -23,7 +23,7 @@ void WavCreator::AppendData(const float* data, unsigned long nbFrames) {
     header.Subchunk2Size += nbFrames * header.NumOfChan * sizeof(float); // NumSamples * NumChannels * BitsPerSample/8
 }
 
-void WavCreator::print_header() {
+void WavRecorder::print_header() {
     std::cout << "RIFF : " << header.RIFF << std::endl;
     std::cout << "ChunkSize : " << header.ChunkSize << std::endl;
     std::cout << "WAVE : " << header.WAVE << std::endl;
@@ -43,7 +43,7 @@ void WavCreator::print_header() {
     // }
 }
 
-void WavCreator::stopRecording() {
+void WavRecorder::stopRecording() {
 
     header.ChunkSize = 36 + header.Subchunk2Size;
     file.write(reinterpret_cast<char *>(&header), sizeof(WAV_HEADER));

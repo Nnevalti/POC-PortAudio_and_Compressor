@@ -11,11 +11,10 @@ int callback   (const void *input,
                 PaStreamCallbackFlags statusFlags,
                 void *userData)
 {
-    WavCreator* creator = (WavCreator*)userData;
-    if (creator->isRecording) {
+    WavRecorder* recorder = (WavRecorder*)userData;
+    if (recorder->isRecording) {
         const float* in = (const float*)input;
-        creator->AppendData(in, frameCount);
-        // creator->file.write((char*)in, frameCount * creator->numChannels * sizeof(float));
+        recorder->AppendData(in, frameCount);
     }
     
     std::memcpy(output, input, frameCount * 2 * SAMPLE_SIZE);
@@ -33,13 +32,13 @@ int main()
     stream.openStream(&callback);
     stream.startStream();
 
-    stream.creator.startRecording("audio.wav");
+    stream.recorder.startRecording("audio.wav");
 
     char input;
     std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << FRAMES_PER_BUFFER << ").\n";
     std::cin.get(input);
 
-    stream.creator.stopRecording();    
+    stream.recorder.stopRecording();    
     stream.stopStream();
 
     return 0;

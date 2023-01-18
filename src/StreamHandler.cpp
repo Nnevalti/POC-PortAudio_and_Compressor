@@ -57,7 +57,7 @@ void StreamHandler::openStream(PaStreamCallback callback)
             FRAMES_PER_BUFFER,
             0,      /* we won't output out of range samples so don't bother clipping them */
             callback,
-            &creator ); /* no callback, so no callback userData */
+            &recorder ); /* no callback, so no callback userData */
 
     if( err != paNoError )
         handleError();

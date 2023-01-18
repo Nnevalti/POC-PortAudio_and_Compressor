@@ -10,7 +10,7 @@
 #pragma once
 
 #include "portaudio.h"
-#include "WavCreator.h"
+#include "WavRecorder.h"
 
 /**
  * StreamHandler Class (temporary name)
@@ -51,7 +51,7 @@
 #define PRINTF_S_FORMAT "%d"
 #endif
 
-class WavCreator;
+class WavRecorder;
 
 class StreamHandler
 {
@@ -67,7 +67,7 @@ class StreamHandler
         void closeStream();
         void handleError();
         void displayPaError();
-        WavCreator creator;
+        WavRecorder recorder;
 
     private:
         PaStreamParameters inputParameters, outputParameters;

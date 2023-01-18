@@ -23,7 +23,7 @@ defines = [
 srcs =  [
     'src/main.cpp',
     'src/StreamHandler.cpp',
-    'src/WavCreator.cpp'
+    'src/WavRecorder.cpp'
 ]
 
 executable('POC_RtAudio', 
