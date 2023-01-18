@@ -15,7 +15,7 @@ class WavRecorder {
     uint32_t Subchunk1Size = 16;           // Size of the fmt chunk
     uint16_t AudioFormat = 3; // Audio format 1=PCM,  3=IEEE float, 6=mulaw, 7=alaw, 257=IBM
                               // Mu-Law, 258=IBM A-Law, 259=ADPCM
-    uint16_t NumOfChan = 2;   // Number of channels 1=Mono 2=Sterio
+    uint16_t NumOfChan = 2;   // Number of channels 1=Mono 2=Stereo
     uint32_t SampleRate = 44100;   // Sampling Frequency in Hz
     uint32_t ByteRate = SampleRate * NumOfChan * 4; // bytes per second (4 = sizeof(float)/8)
     uint16_t blockAlign = NumOfChan * 4;          // (4 = sizeof(float)/8)
