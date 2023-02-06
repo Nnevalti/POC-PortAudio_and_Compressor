@@ -1,5 +1,7 @@
 #pragma once
 
+#include "WavRecorder.h"
+
 class Compressor
 {
 public:
@@ -15,6 +17,8 @@ public:
 	float makeUpGain;
 	float knee;
 	float envelope;
+
+	WavRecorder recorder;
 
 	static inline float db2lin(float db);
 	static inline float lin2db(float lin);

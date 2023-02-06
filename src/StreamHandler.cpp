@@ -57,10 +57,11 @@ void StreamHandler::openStream(PaStreamCallback callback)
             FRAMES_PER_BUFFER,
             0,      /* we won't output out of range samples so don't bother clipping them */
             callback,
-            NULL ); /* no callback, so no callback userData */
+            &data); /* no callback, so no callback userData */
 
     if( err != paNoError )
         handleError();
+    data.recorder.startRecording("original_audio.wav");
 }
 
 void StreamHandler::startStream()
@@ -72,9 +73,12 @@ void StreamHandler::startStream()
 
 void StreamHandler::stopStream()
 {
+    data.recorder.stopRecording();
+
     err = Pa_StopStream( stream );
     if( err != paNoError )
         handleError();
+
 }
 
 void StreamHandler::closeStream()

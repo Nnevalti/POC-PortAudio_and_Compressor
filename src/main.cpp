@@ -1,5 +1,6 @@
 #include "StreamHandler.h"
 #include "Compressor.h"
+#include <cstring>
 #include <iostream>
 
 int callback   (const void *input,
@@ -9,12 +10,19 @@ int callback   (const void *input,
                 PaStreamCallbackFlags statusFlags,
                 void *userData)
 {
+    t_data *data = (t_data*)userData;
+
+    // If recording is on, append data to buffer
+    if (data->recorder.isRecording) {
+        const float* in = (const float*)input;
+        data->recorder.AppendData(in, frameCount);
+    }
+
     unsigned int nbChannels = 2;
     float *compressed_input;
 
-    Compressor compressor;
     // Apply compressor to input signal and store it in output
-    compressed_input = compressor.Compress((const float*)input, frameCount, nbChannels);
+    compressed_input = data->compressor.Compress((const float*)input, frameCount, nbChannels);
 
     std::memcpy(output, compressed_input, frameCount * nbChannels * SAMPLE_SIZE);
     // std::memcpy(output, input, frameCount * nbChannels * SAMPLE_SIZE);
@@ -27,8 +35,8 @@ int main()
 {
     StreamHandler stream;
 
-    stream.initInput(2);
-    stream.initOutput(4);
+    stream.initInput(1);
+    stream.initOutput(3);
     stream.openStream(&callback);
     stream.startStream();
 

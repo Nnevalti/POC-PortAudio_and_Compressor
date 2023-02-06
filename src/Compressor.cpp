@@ -7,13 +7,16 @@ Compressor::Compressor()
 {
 	sampleRate = 44100;
 
-	threshold = -10.0f;
+	threshold = -20.0f;
 	ratio = 8.0f;
 	makeUpGain = 6.0f;
+
+	recorder.startRecording("compressed_audio.wav");
 }
 
 Compressor::~Compressor()
 {
+	recorder.stopRecording();
 }
 
 inline float Compressor::db2lin(float db){ // dB to linear
@@ -49,6 +52,7 @@ float *Compressor::Compress(const float* input, const unsigned int nbFrames, con
 			output[i * nbChannels + j] *= db2lin(makeUpGain); // apply the make up gain
 		}
 	}
+	recorder.AppendData(output, nbFrames);
     return output;
 }
 
