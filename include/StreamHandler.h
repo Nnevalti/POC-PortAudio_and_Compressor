@@ -1,12 +1,3 @@
-/**
- * Author:              Valentin Deschamps
- * Modification by :    Valentin Deschamps
- * Created:             20/10/2022
- * Modified:            20/10/2022
- * 
- * © Copyright by SoundX
- **/
-
 #pragma once
 
 #include "portaudio.h"
