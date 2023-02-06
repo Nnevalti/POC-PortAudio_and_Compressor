@@ -34,7 +34,7 @@ void StreamHandler::initOutput(unsigned int deviceId)
     // Maybe define something to choose when init, because callback must behave accordingly to this param
     outputParameters.channelCount = outputInfo->maxOutputChannels;
     outputParameters.sampleFormat = PA_SAMPLE_TYPE;
-    outputParameters.suggestedLatency = outputInfo->defaultHighInputLatency ;
+    outputParameters.suggestedLatency = outputInfo->defaultHighInputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
 }
 
