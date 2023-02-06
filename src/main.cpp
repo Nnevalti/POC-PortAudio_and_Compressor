@@ -33,6 +33,8 @@ int callback   (const void *input,
 
 int main()
 {
+    freopen("error.txt", "w", stderr);
+
     StreamHandler stream;
 
     stream.initInput(1);

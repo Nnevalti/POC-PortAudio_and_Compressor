@@ -8,8 +8,9 @@ Compressor::Compressor()
 	sampleRate = 44100;
 
 	threshold = -20.0f;
-	ratio = 8.0f;
-	makeUpGain = 6.0f;
+	knee = 5.0f;
+	ratio = 2.0f;
+	makeUpGain = 3.0f;
 
 	recorder.startRecording("compressed_audio.wav");
 }
@@ -30,62 +31,42 @@ inline float Compressor::lin2db(float lin){ // linear to dB
 float *Compressor::Compress(const float* input, const unsigned int nbFrames, const unsigned int nbChannels)
 {
     float *output = new float[nbFrames * nbChannels];
+	float threshold_lin = db2lin(threshold); // convert the threshold to linear
+	float kneeWidth = db2lin(knee); // convert the knee to linear
+	float kneeStart = db2lin(threshold - knee/2); // get the knee start in linear
+	float kneeEnd = db2lin(threshold + knee/2); // get the knee end in linear
+
 	std::memset(output, 0, nbFrames * nbChannels * sizeof(float));
 
-	for (unsigned int i = 0; i < nbFrames; i++) // 0 -> 15
+	for (unsigned int i = 0; i < nbFrames; i++) 
 	{
-		for (unsigned int j = 0; j < nbChannels; j++) // 0 -> 1
+		for (unsigned int j = 0; j < nbChannels; j++)
 		{
-			float level = fabs(input[i * nbChannels + j]); // get absolute value of the input
-			float threshold_lin = db2lin(threshold); // convert the threshold to linear
-			if (level > threshold_lin) {
-				output[i * nbChannels + j] = threshold_lin + ((level - threshold_lin) / ratio); // apply the ratio
-				if (input[i * nbChannels + j] < 0) // if the input is negative, make the output negative
-					output[i * nbChannels + j] *= -1;
-				// std::cout << "compressing " << i * nbChannels + j << std::endl;
-				// std::cout << input[i * nbChannels + j] << " , " << output[i * nbChannels + j] << std::endl;
-				// std::cout << "threshold_lin: " << threshold_lin << " , " << "level: " << level << std::endl;
+			float level = fabs(input[i * nbChannels + j]);
+
+			if (level <= kneeStart) 
+			{
+				output[i * nbChannels + j] = input[i * nbChannels + j];
+				std::cerr << "level <= kneeStart" << std::endl;
 			}
-			else {
-				output[i * nbChannels + j] = input[i * nbChannels + j]; // no compression
+			else if (level <= kneeEnd)
+			{
+				float gainReduction = (level - kneeStart) / kneeWidth * (threshold_lin - kneeStart) / ratio;
+            	output[i * nbChannels + j] = level - gainReduction;
+				std::cerr << "level <= kneeEnd" << std::endl;
 			}
-			output[i * nbChannels + j] *= db2lin(makeUpGain); // apply the make up gain
+			else 
+			{
+				output[i * nbChannels + j] = threshold_lin + ((level - threshold_lin) / ratio);
+			}
+			if (input[i * nbChannels + j] < 0 && output[i * nbChannels + j] > 0) 
+			{
+				output[i * nbChannels + j] *= -1;
+			}
+			// output[i * nbChannels + j] *= db2lin(makeUpGain);
 		}
 	}
+
 	recorder.AppendData(output, nbFrames);
     return output;
 }
-
-// float *Compressor::Compress(const float* input, const unsigned int nbFrames, const unsigned int nbChannels)
-// {
-//     float *output = new float[nbFrames * nbChannels];
-// 	std::memset(output, 0, nbFrames * nbChannels * sizeof(float));
-// 	float gain = 1.0;
-// 	float attackCoeff = exp(-1.0 / (attack * sampleRate));
-// 	float releaseCoeff = exp(-1.0 / (release * sampleRate));
-
-// 	for (unsigned int i = 0; i < nbFrames; i++)
-// 	{
-// 		for (unsigned int j = 0; j < nbChannels; j++)
-// 		{
-// 			float level = fabs(input[i * nbChannels + j]);
-// 			float threshold_lin = db2lin(threshold);
-// 			if (level > threshold_lin) {
-// 				gain = threshold_lin + ((level - threshold_lin) / ratio);
-// 			}
-// 			else {
-// 				gain = level;
-// 			}
-
-// 			// Attack and Release
-// 			if (gain > envelope) {
-// 				envelope = attackCoeff * (envelope - gain) + gain;
-// 			} else {
-// 				envelope = releaseCoeff * (envelope - gain) + gain;
-// 			}
-
-// 			output[i * nbChannels + j] = input[i * nbChannels + j] * (1.0 / envelope);
-// 		}
-// 	}
-//     return output;
-// }
