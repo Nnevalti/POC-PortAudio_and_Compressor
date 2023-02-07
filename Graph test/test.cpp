@@ -4,9 +4,9 @@
 #include <cstring>
 #include <fstream>
 
-#define PRINT_DB 1
-#define WITH_COMPRESSION 2
-#define WITH_KNEE 2
+#define PRINT_DB 0
+#define WITH_COMPRESSION 1
+#define WITH_KNEE 1
 
 #define THRESHOLD -20.0f
 #define KNEE 5.0f
@@ -34,13 +34,13 @@ inline float lin2db(float lin){ // linear to dB
 
 
 // Generate all possible floating point representable numbers on a computer between 0 and 1
-int main() {
-    for (float i = 0; i <= 1; i += std::numeric_limits<float>::epsilon()) {
-        std::cout << i << std::endl;
-    }
+// int main() {
+//     for (float i = 0; i <= 1; i += std::numeric_limits<float>::epsilon()) {
+//         std::cout << i << std::endl;
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
 #if WITH_COMPRESSION == 0
 // No compression
@@ -146,83 +146,86 @@ int main(int argc, char const *argv[])
 
 #else
 // Compression with a knee
-// int main(int argc, char const *argv[])
-// {
-// 	std::vector<float> input;
-// 	std::vector<float> output;
+int main(int argc, char const *argv[])
+{
+	std::vector<float> input;
+	std::vector<float> output;
 
-// 	float threshold_lin = db2lin(THRESHOLD); // convert the threshold to linear
-// 	float kneeWidth = db2lin(KNEE); // convert the knee to linear
-// 	float kneeStart = db2lin(THRESHOLD - KNEE/2); // get the knee start in linear
-// 	float kneeEnd = db2lin(THRESHOLD + KNEE/2); // get the knee end in linear
+	float threshold_lin = db2lin(THRESHOLD); // convert the threshold to linear
+	float kneeWidth = db2lin(KNEE); // convert the knee to linear
+	// float kneeEnd = db2lin(THRESHOLD - KNEE/2); // get the knee start in linear
+	// float kneeStart = db2lin(THRESHOLD + KNEE/2); // get the knee end in linear
 
-//     int iterations = 1000;
-//     float step = 1.0 / (iterations - 1);
-//     for (int i = 0; i < iterations; i++) {
-//         float level_lin = i * step;
-// 		if (level_lin == 0)
-// 			continue;
-// 		input.push_back(level_lin);
+    int iterations = 1000;
+    float step = 1.0 / (iterations - 1);
+    for (int i = 0; i < iterations; i++) {
+        float level_lin = i * step;
+		if (level_lin == 0)
+			continue;
+		input.push_back(level_lin);
 
-// 		if (level_lin < kneeStart) {
-// 			output.push_back(level_lin);
-// 		}
-// 		else if (level_lin <= kneeEnd) {
-// 			output.push_back((((1/RATIO) - 1)*pow(level_lin-THRESHOLD + (kneeWidth/2), 2))/(2*kneeWidth));
-// 		}
-// 		else {
-// 			output.push_back(threshold_lin + ((level_lin - threshold_lin) / RATIO));
-// 		}
+		if (level_lin - threshold_lin < -kneeWidth/2) {
+			output.push_back(level_lin);
+		}
+		else if (fabs(level_lin - threshold_lin) <= kneeWidth/2) {
+			// output.push_back((((1/RATIO) - 1)*pow(level_lin-THRESHOLD + (kneeWidth/2), 2))/(2*kneeWidth));
+			std::cout << "output = " << level_lin;
+			std::cout << " + " << ((1/RATIO - 1) * pow(level_lin - threshold_lin + kneeWidth/2, 2)) / (2 * kneeWidth) << std::endl;
+			output.push_back(level_lin + ((1/RATIO - 1) * pow(level_lin - threshold_lin + kneeWidth/2, 2)) / (2 * kneeWidth));
+		}
+		else if (level_lin - threshold_lin > kneeWidth/2) {
+			output.push_back(threshold_lin + ((level_lin - threshold_lin) / RATIO));
+		}
 
-// // 	⎧
-// // 	⎪ 𝑥𝐺										𝑥𝐺−𝑇<−𝑊2
-// // 	⎪
-// // 𝑦𝐺= ⎨ 𝑥𝐺+(((1/𝑅−1)(𝑥𝐺−𝑇+(𝑊/2))²)/2𝑊)		|𝑥𝐺−𝑇|≤𝑊2
-// // 	⎪
-// // 	⎪ 𝑇+𝑥𝐺−𝑇𝑅								𝑥𝐺−𝑇>𝑊2
-// // 	⎩
-// 		// if (level_lin <= kneeStart) 
-// 		// {
-// 		// 	output.push_back(level_lin);
-// 		// }
-// 		// else if (level_lin <= kneeEnd)
-// 		// {
-// 		// 	float gainReduction = ((level_lin - kneeStart) / kneeWidth) * (threshold_lin - kneeStart) / RATIO;
-// 		// 	output.push_back(level_lin - gainReduction);
-// 		// }
-// 		// else 
-// 		// {
-// 		// 	output.push_back(threshold_lin + ((level_lin - threshold_lin) / RATIO));
-// 		// }
-// 	}
+// 	⎧
+// 	⎪ 𝑥𝐺										𝑥𝐺−𝑇<−𝑊2
+// 	⎪
+// 𝑦𝐺= ⎨ 𝑥𝐺+(((1/𝑅−1)(𝑥𝐺−𝑇+(𝑊/2))²)/2𝑊)		|𝑥𝐺−𝑇|≤𝑊2
+// 	⎪
+// 	⎪ 𝑇+𝑥𝐺−𝑇𝑅								𝑥𝐺−𝑇>𝑊2
+// 	⎩
+		// if (level_lin <= kneeStart) 
+		// {
+		// 	output.push_back(level_lin);
+		// }
+		// else if (level_lin <= kneeEnd)
+		// {
+		// 	float gainReduction = ((level_lin - kneeStart) / kneeWidth) * (threshold_lin - kneeStart) / RATIO;
+		// 	output.push_back(level_lin - gainReduction);
+		// }
+		// else 
+		// {
+		// 	output.push_back(threshold_lin + ((level_lin - threshold_lin) / RATIO));
+		// }
+	}
 
-// 	std::ofstream myfile;
+	std::ofstream myfile;
 
-// 	if (PRINT_DB) {
-// 		std::transform(output.begin(), output.end(), output.begin(), lin2db);
-// 		std::transform(input.begin(), input.end(), input.begin(), lin2db);
-// 		myfile.open ("graph_compression_with_knee_dB.json");
-// 	} else {
-// 		myfile.open ("graph_compression_with_knee_lin.json");
-// 	}
+	if (PRINT_DB) {
+		std::transform(output.begin(), output.end(), output.begin(), lin2db);
+		std::transform(input.begin(), input.end(), input.begin(), lin2db);
+		myfile.open ("graph_compression_with_knee_dB.json");
+	} else {
+		myfile.open ("graph_compression_with_knee_lin.json");
+	}
 
 
 
-// 	myfile << "{" << std::endl;
-// 	myfile << " \"x\": [";
-// 	for (int i = 0; i < input.size(); i++) {
-// 		myfile << input[i] << ( i == input.size() - 1 ? "" : ", ");
-// 	}
-// 	myfile << "]," << std::endl;
-// 	myfile << " \"y\": [";
-// 	for (int i = 0; i < output.size(); i++) {
-// 		myfile << output[i] << ( i == output.size() - 1 ? "" : ", ");
-// 	}
-// 	myfile << "]" << std::endl;
-// 	myfile << "}" << std::endl;
+	myfile << "{" << std::endl;
+	myfile << " \"x\": [";
+	for (int i = 0; i < input.size(); i++) {
+		myfile << input[i] << ( i == input.size() - 1 ? "" : ", ");
+	}
+	myfile << "]," << std::endl;
+	myfile << " \"y\": [";
+	for (int i = 0; i < output.size(); i++) {
+		myfile << output[i] << ( i == output.size() - 1 ? "" : ", ");
+	}
+	myfile << "]" << std::endl;
+	myfile << "}" << std::endl;
 
-// 	myfile.close();
+	myfile.close();
 
-// 	return 0;
-// }
+	return 0;
+}
 #endif

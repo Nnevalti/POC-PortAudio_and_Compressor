@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import json
 
 # dictionary = json.load(open('graph_no_compression_lin.json', 'r'))
-dictionary = json.load(open('graph_compression_no_knee_lin.json', 'r'))
-# dictionary = json.load(open('graph_compression_with_knee_lin.json', 'r'))
+# dictionary = json.load(open('graph_compression_no_knee_lin.json', 'r'))
+dictionary = json.load(open('graph_compression_with_knee_lin.json', 'r'))
 xAxis = dictionary['x']
 yAxis = dictionary['y']
 
