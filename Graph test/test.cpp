@@ -32,7 +32,6 @@ inline float lin2db(float lin){ // linear to dB
 //     return 0;
 // }
 
-
 // Generate all possible floating point representable numbers on a computer between 0 and 1
 // int main() {
 //     for (float i = 0; i <= 1; i += std::numeric_limits<float>::epsilon()) {
@@ -164,6 +163,13 @@ int main(int argc, char const *argv[])
 			continue;
 		input.push_back(level_lin);
 
+		// 	   ⎧
+		// 	   ⎪ 𝑥𝐺									  𝑥𝐺−𝑇<−𝑊2
+		// 	   ⎪
+		// 𝑦𝐺= ⎨ 𝑥𝐺+(((1/𝑅−1)(𝑥𝐺−𝑇+(𝑊/2))²)/2𝑊)		|𝑥𝐺−𝑇|≤𝑊2
+		// 	   ⎪
+		// 	   ⎪ 𝑇+𝑥𝐺−𝑇𝑅								 𝑥𝐺−𝑇>𝑊2
+		// 	   ⎩
 		if (level_lin - threshold_lin < -kneeWidth/2) {
 			output.push_back(level_lin);
 		}
@@ -176,27 +182,6 @@ int main(int argc, char const *argv[])
 		else if (level_lin - threshold_lin > kneeWidth/2) {
 			output.push_back(threshold_lin + ((level_lin - threshold_lin) / RATIO));
 		}
-
-// 	⎧
-// 	⎪ 𝑥𝐺										𝑥𝐺−𝑇<−𝑊2
-// 	⎪
-// 𝑦𝐺= ⎨ 𝑥𝐺+(((1/𝑅−1)(𝑥𝐺−𝑇+(𝑊/2))²)/2𝑊)		|𝑥𝐺−𝑇|≤𝑊2
-// 	⎪
-// 	⎪ 𝑇+𝑥𝐺−𝑇𝑅								𝑥𝐺−𝑇>𝑊2
-// 	⎩
-		// if (level_lin <= kneeStart) 
-		// {
-		// 	output.push_back(level_lin);
-		// }
-		// else if (level_lin <= kneeEnd)
-		// {
-		// 	float gainReduction = ((level_lin - kneeStart) / kneeWidth) * (threshold_lin - kneeStart) / RATIO;
-		// 	output.push_back(level_lin - gainReduction);
-		// }
-		// else 
-		// {
-		// 	output.push_back(threshold_lin + ((level_lin - threshold_lin) / RATIO));
-		// }
 	}
 
 	std::ofstream myfile;
