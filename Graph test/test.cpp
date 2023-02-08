@@ -9,15 +9,23 @@
 #define WITH_KNEE 1
 
 #define THRESHOLD -20.0f
-#define KNEE 5.0f
+#define KNEE 0.0f
 #define RATIO 2.0f
 
 inline float db2lin(float db){ // dB to linear
-	return powf(10.0f, 0.05f * db); // 0,05 = 1/20
+	return powf(10.0f, db / 20); // 0,05 = 1/20
 }
 
 inline float lin2db(float lin){ // linear to dB
+	if (lin == 0)
+		return -INFINITY;
 	return 20.0f * log10f(lin);
+}
+
+inline float kneeWidth2lin(float knee){ // knee width to linear
+	if (knee == 0)
+		return 0;
+	return powf(10.0f, knee / 20); // 0,05 = 1/20
 }
 
 // Generate n points between 0 and 1 with equal distance
@@ -151,7 +159,8 @@ int main(int argc, char const *argv[])
 	std::vector<float> output;
 
 	float threshold_lin = db2lin(THRESHOLD); // convert the threshold to linear
-	float kneeWidth = db2lin(KNEE); // convert the knee to linear
+	float kneeWidth = kneeWidth2lin(KNEE); // convert the knee width to linear
+
 	// float kneeEnd = db2lin(THRESHOLD - KNEE/2); // get the knee start in linear
 	// float kneeStart = db2lin(THRESHOLD + KNEE/2); // get the knee end in linear
 
@@ -159,8 +168,8 @@ int main(int argc, char const *argv[])
     float step = 1.0 / (iterations - 1);
     for (int i = 0; i < iterations; i++) {
         float level_lin = i * step;
-		if (level_lin == 0)
-			continue;
+		// if (level_lin == 0)
+		// 	continue;
 		input.push_back(level_lin);
 
 		// 	   ⎧
@@ -170,17 +179,22 @@ int main(int argc, char const *argv[])
 		// 	   ⎪
 		// 	   ⎪ 𝑇+𝑥𝐺−𝑇𝑅								 𝑥𝐺−𝑇>𝑊2
 		// 	   ⎩
-		if (level_lin - threshold_lin < -kneeWidth/2) {
+		if (level_lin <= 0.01) {
+			std::cout << "Level - threshold: " << level_lin - threshold_lin << std::endl;
+			std::cout << "Knee width: " << kneeWidth << std::endl;
+			std::cout << "-Knee width / 2: " << -kneeWidth/2 << std::endl;
+		}
+		if (level_lin - threshold_lin <= -kneeWidth/2) {
 			output.push_back(level_lin);
+			// std::cout << "No change" << std::endl;
 		}
 		else if (fabs(level_lin - threshold_lin) <= kneeWidth/2) {
-			// output.push_back((((1/RATIO) - 1)*pow(level_lin-THRESHOLD + (kneeWidth/2), 2))/(2*kneeWidth));
-			std::cout << "output = " << level_lin;
-			std::cout << " + " << ((1/RATIO - 1) * pow(level_lin - threshold_lin + kneeWidth/2, 2)) / (2 * kneeWidth) << std::endl;
 			output.push_back(level_lin + ((1/RATIO - 1) * pow(level_lin - threshold_lin + kneeWidth/2, 2)) / (2 * kneeWidth));
+			// std::cout << "Knee" << std::endl;
 		}
 		else if (level_lin - threshold_lin > kneeWidth/2) {
 			output.push_back(threshold_lin + ((level_lin - threshold_lin) / RATIO));
+			// std::cout << "Ratio" << std::endl;
 		}
 	}
 

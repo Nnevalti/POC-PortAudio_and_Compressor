@@ -34,3 +34,5 @@
 .DS_Store
 *.reapeaks
 error.log
+*.RPP
+*.RPP-bak
