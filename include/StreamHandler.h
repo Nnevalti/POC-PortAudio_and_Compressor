@@ -1,15 +1,8 @@
-/**
- * Author:              Valentin Deschamps
- * Modification by :    Valentin Deschamps
- * Created:             20/10/2022
- * Modified:            20/10/2022
- * 
- * © Copyright by SoundX
- **/
-
 #pragma once
 
 #include "portaudio.h"
+#include "WavRecorder.h"
+#include "Compressor.h"
 
 /**
  * StreamHandler Class (temporary name)
@@ -50,7 +43,10 @@
 #define PRINTF_S_FORMAT "%d"
 #endif
 
-
+typedef struct  s_data {
+    WavRecorder recorder;
+    Compressor  compressor;
+}               t_data;
 
 class StreamHandler
 {
@@ -67,26 +63,7 @@ class StreamHandler
         void handleError();
         void displayPaError();
 
-    /* Maybe for later use */
-        // class InitStreamException : public std::exception
-		// {
-		// 	virtual const char* what() const throw();
-		// };
-
-        // class OpenStreamException : public std::exception
-		// {
-		// 	virtual const char* what() const throw();
-		// };
-
-        // class StartStreamException : public std::exception
-		// {
-		// 	virtual const char* what() const throw();
-		// };
-
-        // class StopStreamException : public std::exception
-		// {
-		// 	virtual const char* what() const throw();
-		// };
+        t_data data;
 
     private:
         PaStreamParameters inputParameters, outputParameters;

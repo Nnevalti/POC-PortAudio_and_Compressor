@@ -1,12 +1,3 @@
-/**
- * Author:              Valentin Deschamps
- * Modification by :    Valentin Deschamps
- * Created:             20/10/2022
- * Modified:            20/10/2022
- * 
- * © Copyright by SoundX
- **/
-
 #include <iostream>
 
 #include "StreamHandler.h"
@@ -43,7 +34,7 @@ void StreamHandler::initOutput(unsigned int deviceId)
     // Maybe define something to choose when init, because callback must behave accordingly to this param
     outputParameters.channelCount = outputInfo->maxOutputChannels;
     outputParameters.sampleFormat = PA_SAMPLE_TYPE;
-    outputParameters.suggestedLatency = outputInfo->defaultHighInputLatency ;
+    outputParameters.suggestedLatency = outputInfo->defaultHighInputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
 }
 
@@ -57,10 +48,11 @@ void StreamHandler::openStream(PaStreamCallback callback)
             FRAMES_PER_BUFFER,
             0,      /* we won't output out of range samples so don't bother clipping them */
             callback,
-            NULL ); /* no callback, so no callback userData */
+            &data); /* no callback, so no callback userData */
 
     if( err != paNoError )
         handleError();
+    data.recorder.startRecording("original_audio.wav");
 }
 
 void StreamHandler::startStream()
@@ -72,9 +64,12 @@ void StreamHandler::startStream()
 
 void StreamHandler::stopStream()
 {
+    data.recorder.stopRecording();
+
     err = Pa_StopStream( stream );
     if( err != paNoError )
         handleError();
+
 }
 
 void StreamHandler::closeStream()
