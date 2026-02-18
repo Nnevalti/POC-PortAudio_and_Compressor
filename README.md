@@ -9,6 +9,7 @@ Finally I started to develop a peak audio compressor, it's still a work in progr
 - [x] POC Portaudio
 - [x] Add WAV file recorder
     - [ ] Optimize + Clean WavRecorder code
+    - [ ] Add Load Wav file functions
 - [x] Start Compressor
 - [x]   Threshold
 - [x]   Knee
@@ -17,6 +18,7 @@ Finally I started to develop a peak audio compressor, it's still a work in progr
 - [x]   MakeUpGain
 - [ ] ImGUI interface
     - [ ] Wav Record -> Start/Stop Recording button
+    - [ ] Visualisation for compressor before after
 - [ ] Limiter
 - [ ] LUFS
 - [ ] EQ (LP, BP, HP filters)
