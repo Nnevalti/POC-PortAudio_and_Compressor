@@ -8,9 +8,16 @@ Finally I started to develop a peak audio compressor, it's still a work in progr
 ## ToDo List
 - [x] POC Portaudio
 - [x] Add WAV file recorder
+    - [ ] Optimize + Clean WavRecorder code
 - [x] Start Compressor
 - [x]   Threshold
 - [x]   Knee
 - [ ]   Side chain for multiple input channels
 - [ ]   Attack and release enveloppe
 - [x]   MakeUpGain
+- [ ] ImGUI interface
+    - [ ] Wav Record -> Start/Stop Recording button
+- [ ] Limiter
+- [ ] LUFS
+- [ ] EQ (LP, BP, HP filters)
+- [ ] 
