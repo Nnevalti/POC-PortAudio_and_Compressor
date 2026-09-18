@@ -1,9 +1,10 @@
 #include "Compressor.h"
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <iostream>
 
-Compressor::Compressor()
+Compressor::Compressor(bool recordOutput)
 {
 	sampleRate = 44100;
 
@@ -12,12 +13,15 @@ Compressor::Compressor()
 	ratio = 5.0f;
 	makeUpGain = 3.0f;
 
-	recorder.startRecording("compressed_audio.wav");
+	this->recordOutput = recordOutput;
+	if (recordOutput)
+		recorder.startRecording("compressed_audio.wav");
 }
 
 Compressor::~Compressor()
 {
-	recorder.stopRecording();
+	if (recordOutput)
+		recorder.stopRecording();
 }
 
 inline float Compressor::db2lin(float db){ // dB to linear
@@ -38,8 +42,7 @@ float *Compressor::Compress(const float* input, const unsigned int nbFrames, con
 {
 	// linear
     float *output = new float[nbFrames * nbChannels];
-	float threshold_lin = db2lin(threshold); // convert the threshold to linear
-	float kneeWidth = kneeWidth2lin(-knee); // convert the knee to linear
+	const float kneeWidth = std::max(0.0f, knee);
 
 	std::memset(output, 0, nbFrames * nbChannels * sizeof(float));
 
@@ -49,15 +52,31 @@ float *Compressor::Compress(const float* input, const unsigned int nbFrames, con
 		{
 			float level = fabs(input[i * nbChannels + j]);
 
-			// Knee compression algorithm
-			if (level - threshold_lin < -kneeWidth/2) {
-				output[i * nbChannels + j] = level;
+			if (level == 0.0f) {
+				output[i * nbChannels + j] = 0.0f;
 			}
-			else if (fabs(level - threshold_lin) <= kneeWidth/2) {
-				output[i * nbChannels + j] = level + ((1/ratio - 1) * pow(level - threshold_lin + kneeWidth/2, 2)) / (2 * kneeWidth);
-			}
-			else if (level - threshold_lin > kneeWidth/2) {
-				output[i * nbChannels + j] = threshold_lin + ((level - threshold_lin) / ratio);
+			else {
+				const float inputDb = lin2db(level);
+				float gainReductionDb = 0.0f;
+
+				if (kneeWidth <= 0.0f) {
+					if (inputDb > threshold)
+						gainReductionDb = (1.0f / ratio - 1.0f) * (inputDb - threshold);
+				}
+				else if (inputDb < threshold - kneeWidth / 2.0f) {
+					gainReductionDb = 0.0f;
+				}
+				else if (inputDb <= threshold + kneeWidth / 2.0f) {
+					const float distanceIntoKnee = inputDb - threshold + kneeWidth / 2.0f;
+					gainReductionDb =
+						(1.0f / ratio - 1.0f) * distanceIntoKnee * distanceIntoKnee /
+						(2.0f * kneeWidth);
+				}
+				else {
+					gainReductionDb = (1.0f / ratio - 1.0f) * (inputDb - threshold);
+				}
+
+				output[i * nbChannels + j] = db2lin(inputDb + gainReductionDb);
 			}
 
 			if (input[i * nbChannels + j] < 0)
@@ -68,6 +87,7 @@ float *Compressor::Compress(const float* input, const unsigned int nbFrames, con
 		}
 	}
 
-	recorder.AppendData(output, nbFrames);
+	if (recordOutput)
+		recorder.AppendData(output, nbFrames);
     return output;
 }

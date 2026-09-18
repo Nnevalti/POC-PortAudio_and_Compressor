@@ -5,7 +5,7 @@
 class Compressor
 {
 public:
-	Compressor();
+	explicit Compressor(bool recordOutput = true);
 	~Compressor();
 
 	float sampleRate;
@@ -19,6 +19,11 @@ public:
 	float envelope;
 
 	WavRecorder recorder;
+
+private:
+	bool recordOutput;
+
+public:
 
 	static inline float db2lin(float db);
 	static inline float lin2db(float lin);

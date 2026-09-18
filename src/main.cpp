@@ -18,7 +18,7 @@ int callback   (const void *input,
         data->recorder.AppendData(in, frameCount);
     }
 
-    unsigned int nbChannels = 2;
+    const unsigned int nbChannels = static_cast<unsigned int>(data->recorder.header.NumOfChan);
     float *compressed_input;
 
     // Apply compressor to input signal and store it in output
@@ -37,16 +37,18 @@ int main()
 
     StreamHandler stream;
 
-    stream.initInput(1);
-    stream.initOutput(3);
-    stream.openStream(&callback);
-    stream.startStream();
+    if (!stream.initInput() || !stream.initOutput() || !stream.configureStereoChannels() ||
+        !stream.openStream(&callback) || !stream.startStream()) {
+        return 1;
+    }
 
     char input;
     std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << FRAMES_PER_BUFFER << ").\n";
     std::cin.get(input);
 
-    stream.stopStream();
+    if (!stream.stopStream())
+        return 1;
+    stream.closeStream();
 
     return 0;
 }

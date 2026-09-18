@@ -34,5 +34,6 @@
 .DS_Store
 *.reapeaks
 error.log
+build/
 *.RPP
 *.RPP-bak

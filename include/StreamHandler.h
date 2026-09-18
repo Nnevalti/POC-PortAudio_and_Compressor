@@ -54,11 +54,12 @@ class StreamHandler
         StreamHandler();
         ~StreamHandler();
         // void init(); // Will probably do that in constructor
-        void initInput(unsigned int deviceId); // Setup Input Params
-        void initOutput(unsigned int deviceId); // Setup Output Params
-        void openStream(PaStreamCallback callback);
-        void startStream();
-        void stopStream();
+        bool initInput(PaDeviceIndex deviceId = paNoDevice); // Setup input device
+        bool initOutput(PaDeviceIndex deviceId = paNoDevice); // Setup output device
+        bool configureStereoChannels();
+        bool openStream(PaStreamCallback callback);
+        bool startStream();
+        bool stopStream();
         void closeStream();
         void handleError();
         void displayPaError();
@@ -67,7 +68,7 @@ class StreamHandler
 
     private:
         PaStreamParameters inputParameters, outputParameters;
-        PaStream *stream;
+        PaStream *stream = nullptr;
         PaError err;
         const PaDeviceInfo* inputInfo;
         const PaDeviceInfo* outputInfo;

@@ -14,31 +14,74 @@ StreamHandler::~StreamHandler()
     Pa_Terminate();
 }
 
-void StreamHandler::initInput(unsigned int deviceId)
+bool StreamHandler::initInput(PaDeviceIndex deviceId)
 {
+    if (deviceId == paNoDevice)
+        deviceId = Pa_GetDefaultInputDevice();
+
+    if (deviceId == paNoDevice) {
+        std::cerr << "No default input device is available." << std::endl;
+        return false;
+    }
+
     inputParameters.device = deviceId;
     inputInfo = Pa_GetDeviceInfo( inputParameters.device );
-    // For now it only works if both devices has the same number of channels
-    // Maybe define something to choose when init, because callback must behave accordingly to this param
-    inputParameters.channelCount = inputInfo->maxInputChannels;
+    if (inputInfo == nullptr || inputInfo->maxInputChannels <= 0) {
+        std::cerr << "Selected input device cannot capture audio." << std::endl;
+        return false;
+    }
+
     inputParameters.sampleFormat = PA_SAMPLE_TYPE;
     inputParameters.suggestedLatency = inputInfo->defaultHighInputLatency;
     inputParameters.hostApiSpecificStreamInfo = NULL;
+    return true;
 }
 
-void StreamHandler::initOutput(unsigned int deviceId)
+bool StreamHandler::initOutput(PaDeviceIndex deviceId)
 {
+    if (deviceId == paNoDevice)
+        deviceId = Pa_GetDefaultOutputDevice();
+
+    if (deviceId == paNoDevice) {
+        std::cerr << "No default output device is available." << std::endl;
+        return false;
+    }
+
     outputParameters.device = deviceId;
     outputInfo = Pa_GetDeviceInfo(outputParameters.device);
-    // For now it only works if both devices has the same number of channels
-    // Maybe define something to choose when init, because callback must behave accordingly to this param
-    outputParameters.channelCount = outputInfo->maxOutputChannels;
+    if (outputInfo == nullptr || outputInfo->maxOutputChannels <= 0) {
+        std::cerr << "Selected output device cannot play audio." << std::endl;
+        return false;
+    }
+
     outputParameters.sampleFormat = PA_SAMPLE_TYPE;
-    outputParameters.suggestedLatency = outputInfo->defaultHighInputLatency;
+    outputParameters.suggestedLatency = outputInfo->defaultHighOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
+    return true;
 }
 
-void StreamHandler::openStream(PaStreamCallback callback)
+bool StreamHandler::configureStereoChannels()
+{
+    if (inputInfo == nullptr || outputInfo == nullptr)
+        return false;
+
+    constexpr int channelCount = 2;
+    if (inputInfo->maxInputChannels < channelCount || outputInfo->maxOutputChannels < channelCount) {
+        std::cerr << "This proof of concept requires stereo input and output devices." << std::endl;
+        return false;
+    }
+
+    inputParameters.channelCount = channelCount;
+    outputParameters.channelCount = channelCount;
+    err = Pa_IsFormatSupported(&inputParameters, &outputParameters, SAMPLE_RATE);
+    if (err != paFormatIsSupported) {
+        displayPaError();
+        return false;
+    }
+    return true;
+}
+
+bool StreamHandler::openStream(PaStreamCallback callback)
 {
     err = Pa_OpenStream(
             &stream,
@@ -50,25 +93,35 @@ void StreamHandler::openStream(PaStreamCallback callback)
             callback,
             &data); /* no callback, so no callback userData */
 
-    if( err != paNoError )
-        handleError();
+    if( err != paNoError ) {
+        displayPaError();
+        return false;
+    }
     data.recorder.startRecording("original_audio.wav");
+    return true;
 }
 
-void StreamHandler::startStream()
+bool StreamHandler::startStream()
 {
     err = Pa_StartStream( stream );
-    if( err != paNoError )
-        handleError();
+    if( err != paNoError ) {
+        displayPaError();
+        return false;
+    }
+    return true;
 }
 
-void StreamHandler::stopStream()
+bool StreamHandler::stopStream()
 {
     data.recorder.stopRecording();
 
     err = Pa_StopStream( stream );
-    if( err != paNoError )
-        handleError();
+    if( err != paNoError ) {
+        displayPaError();
+        return false;
+    }
+
+    return true;
 
 }
 
