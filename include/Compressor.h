@@ -29,6 +29,8 @@ public:
 	static inline float lin2db(float lin);
 	static inline float kneeWidth2lin(float knee);
 
-	// void process(const float *input, float *output, int numSamples, int numChannels);
+	// Writes into caller-owned storage; a null input produces silence.
+	void process(const float* input, float* output, unsigned int nbFrames, unsigned int nbChannels);
+	// Compatibility API: caller owns the returned array and must delete[] it.
 	float *Compress(const float* input, const unsigned int nbFrames, const unsigned int nbChannels);
 };

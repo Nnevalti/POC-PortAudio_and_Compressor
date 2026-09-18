@@ -76,5 +76,20 @@ int main()
     passed &= expectNear("soft knee upper edge", toDb(softKneeOutput[2]), -18.75f);
     passed &= expectNear("soft knee lower edge", toDb(softKneeOutput[3]), -25.0f);
 
+    // The live path writes directly into PortAudio's buffer.
+    float directOutput[4] = {};
+    compressor.process(softKneeInput, directOutput, 2, 2);
+    for (unsigned int i = 0; i < 4; ++i)
+        passed &= expectNear("caller-owned buffer", directOutput[i], softKneeOutput[i]);
+
+    float inPlace[] = {fromDb(-20.0f), -fromDb(-20.0f)};
+    compressor.process(inPlace, inPlace, 1, 2);
+    passed &= expectNear("in-place positive", inPlace[0], softKneeOutput[1]);
+    passed &= expectNear("in-place negative", inPlace[1], -softKneeOutput[1]);
+
+    compressor.process(nullptr, directOutput, 2, 2);
+    for (float sample : directOutput)
+        passed &= expectNear("missing input produces silence", sample, 0.0f);
+
     return passed ? EXIT_SUCCESS : EXIT_FAILURE;
 }

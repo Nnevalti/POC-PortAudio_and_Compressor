@@ -67,11 +67,11 @@ class StreamHandler
         t_data data;
 
     private:
-        PaStreamParameters inputParameters, outputParameters;
+        PaStreamParameters inputParameters{}, outputParameters{};
         PaStream *stream = nullptr;
         PaError err;
-        const PaDeviceInfo* inputInfo;
-        const PaDeviceInfo* outputInfo;
+        const PaDeviceInfo* inputInfo = nullptr;
+        const PaDeviceInfo* outputInfo = nullptr;
         // unsigned int numChannels;
         
 };

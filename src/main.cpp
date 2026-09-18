@@ -1,33 +1,31 @@
 #include "StreamHandler.h"
 #include "Compressor.h"
-#include <cstring>
 #include <iostream>
+#include <algorithm>
+#include <cstddef>
 
 int callback   (const void *input,
                 void *output,
                 unsigned long frameCount,
-                const PaStreamCallbackTimeInfo *timeInfo,
-                PaStreamCallbackFlags statusFlags,
+                const PaStreamCallbackTimeInfo *,
+                PaStreamCallbackFlags,
                 void *userData)
 {
     t_data *data = (t_data*)userData;
 
-    // If recording is on, append data to buffer
-    if (data->recorder.isRecording) {
-        const float* in = (const float*)input;
-        data->recorder.AppendData(in, frameCount);
-    }
-
     const unsigned int nbChannels = static_cast<unsigned int>(data->recorder.header.NumOfChan);
-    float *compressed_input;
+    const float* in = static_cast<const float*>(input);
+    float* out = static_cast<float*>(output);
 
-    // Apply compressor to input signal and store it in output
-    compressed_input = data->compressor.Compress((const float*)input, frameCount, nbChannels);
+    if (in == nullptr) {
+        // Keep both recordings aligned when capture supplies a silent block.
+        std::fill_n(out, static_cast<std::size_t>(frameCount) * nbChannels, 0.0f);
+        in = out;
+    }
+    data->recorder.AppendData(in, frameCount);
+    // PortAudio owns the output buffer; processing needs no temporary allocation.
+    data->compressor.process(in, out, frameCount, nbChannels);
 
-    std::memcpy(output, compressed_input, frameCount * nbChannels * SAMPLE_SIZE);
-    // std::memcpy(output, input, frameCount * nbChannels * SAMPLE_SIZE);
-
-    /* Check return value at http://files.portaudio.com/docs/v19-doxydocs/portaudio_8h.html#ae9bfb9c4e1895326f30f80d415c66c32 */
     return paContinue; 
 }
 

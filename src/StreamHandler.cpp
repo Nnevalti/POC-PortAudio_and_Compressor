@@ -11,6 +11,7 @@ StreamHandler::StreamHandler()
 
 StreamHandler::~StreamHandler()
 {
+    closeStream();
     Pa_Terminate();
 }
 
@@ -97,7 +98,12 @@ bool StreamHandler::openStream(PaStreamCallback callback)
         displayPaError();
         return false;
     }
-    data.recorder.startRecording("original_audio.wav");
+    if (!data.recorder.startRecording("original_audio.wav", SAMPLE_RATE,
+                                      inputParameters.channelCount)) {
+        std::cerr << "Could not start input WAV recording." << std::endl;
+        closeStream();
+        return false;
+    }
     return true;
 }
 
@@ -113,16 +119,17 @@ bool StreamHandler::startStream()
 
 bool StreamHandler::stopStream()
 {
-    data.recorder.stopRecording();
-
     err = Pa_StopStream( stream );
     if( err != paNoError ) {
         displayPaError();
         return false;
     }
 
-    return true;
-
+    const bool originalSaved = data.recorder.stopRecording();
+    const bool compressedSaved = data.compressor.recorder.stopRecording();
+    if (!originalSaved || !compressedSaved)
+        std::cerr << "Could not save a complete WAV recording." << std::endl;
+    return originalSaved && compressedSaved;
 }
 
 void StreamHandler::closeStream()
@@ -131,7 +138,10 @@ void StreamHandler::closeStream()
     {
         Pa_AbortStream( stream );
         Pa_CloseStream( stream );
+        stream = nullptr;
     }
+    data.recorder.stopRecording();
+    data.compressor.recorder.stopRecording();
 }
 
 void StreamHandler::handleError()

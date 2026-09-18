@@ -1,8 +1,7 @@
 #include "Compressor.h"
 #include <algorithm>
 #include <cmath>
-#include <cstring>
-#include <iostream>
+#include <cstddef>
 
 Compressor::Compressor(bool recordOutput)
 {
@@ -40,20 +39,28 @@ inline float Compressor::kneeWidth2lin(float knee){ // knee width to linear
 
 float *Compressor::Compress(const float* input, const unsigned int nbFrames, const unsigned int nbChannels)
 {
-	// linear
-    float *output = new float[nbFrames * nbChannels];
-	const float kneeWidth = std::max(0.0f, knee);
+    float *output = new float[static_cast<std::size_t>(nbFrames) * nbChannels];
+    process(input, output, nbFrames, nbChannels);
+    return output;
+}
 
-	std::memset(output, 0, nbFrames * nbChannels * sizeof(float));
+void Compressor::process(const float* input, float* output, unsigned int nbFrames, unsigned int nbChannels)
+{
+    if (output == nullptr || nbFrames == 0 || nbChannels == 0) {
+        return;
+    }
+	const float kneeWidth = std::max(0.0f, knee);
 
 	for (unsigned int i = 0; i < nbFrames; i++)
 	{
 		for (unsigned int j = 0; j < nbChannels; j++)
 		{
-			float level = fabs(input[i * nbChannels + j]);
+			const std::size_t index = static_cast<std::size_t>(i) * nbChannels + j;
+			const float sample = input ? input[index] : 0.0f;
+			float level = fabs(sample);
 
 			if (level == 0.0f) {
-				output[i * nbChannels + j] = 0.0f;
+				output[index] = 0.0f;
 			}
 			else {
 				const float inputDb = lin2db(level);
@@ -76,18 +83,17 @@ float *Compressor::Compress(const float* input, const unsigned int nbFrames, con
 					gainReductionDb = (1.0f / ratio - 1.0f) * (inputDb - threshold);
 				}
 
-				output[i * nbChannels + j] = db2lin(inputDb + gainReductionDb);
+				output[index] = db2lin(inputDb + gainReductionDb);
 			}
 
-			if (input[i * nbChannels + j] < 0)
-				output[i * nbChannels + j] *= -1;
+			if (sample < 0)
+				output[index] *= -1;
 
 			// Apply the make-up gain
-			output[i * nbChannels + j] *= db2lin(makeUpGain);
+			output[index] *= db2lin(makeUpGain);
 		}
 	}
 
-	if (recordOutput)
+	if (recordOutput && nbChannels == recorder.header.NumOfChan)
 		recorder.AppendData(output, nbFrames);
-    return output;
 }
